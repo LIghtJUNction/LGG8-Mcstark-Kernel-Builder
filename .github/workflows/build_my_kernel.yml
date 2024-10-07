@@ -52,7 +52,7 @@ jobs:
       - name: "⭐ 安装依赖"
         run: |
           sudo apt-get update -qq > /dev/null
-          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools wget curl > /dev/null
+          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools > /dev/null
 
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         working-directory: ./${{ env.kernelDir }}
@@ -139,7 +139,7 @@ jobs:
             rm -rf "./KernelSU"
           fi
           if [ -d "./drivers/kernelsu" ]; then
-            rm -rf "./drivers/kernelsu"
+            rm- rf "./drivers/kernelsu"
           fi
 
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
