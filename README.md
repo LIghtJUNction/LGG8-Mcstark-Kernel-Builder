@@ -1,5 +1,9 @@
 
-<h1>LG G8 Docker Kernel</h1>
+<h1>LG G8 kernel
+
+-- for pixel
+-- clang17.0.2
+
 
 **Support**
 
