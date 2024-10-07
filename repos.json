@@ -1,8 +1,8 @@
 [  {
     "kernelSource": {
-      "name": "G8-lightjuction",
-      "repo": "https://github.com/LIghtJUNction/kernel_lge_alphalm/",
-      "branch": "alphalm",
+      "name": "G8-OvO",
+      "repo": "https://github.com/qwe28256/OvO_mcstark_alphalm_kernel",
+      "branch": "14",
       "device": "dev"
     },
     "withKernelSU": true,
