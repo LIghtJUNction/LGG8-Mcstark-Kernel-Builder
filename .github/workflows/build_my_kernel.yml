@@ -51,8 +51,8 @@ jobs:
 
       - name: "⭐ 安装依赖"
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools wget curl
+          sudo apt-get update -qq > /dev/null
+          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools wget curl > /dev/null
 
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         working-directory: ./${{ env.kernelDir }}
@@ -65,20 +65,17 @@ jobs:
           toolchains: "${{ toJSON(matrix.repos.toolchains) }}"
         run: |
           toolchains_num="$(echo $toolchains | jq 'length')"
-          echo $toolchains_num
           for ((i=0;i<toolchains_num;i++)); do
             name=$(echo $toolchains | jq -r ".[$i].name")
             repo=$(echo $toolchains | jq -r ".[$i].repo")
             branch=$(echo $toolchains | jq -r ".[$i].branch")
-            wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-            tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
+            tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
             mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
             rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
           done
-
-          echo "PATH Variable: $PATH"
 
       - name: "😎 一些设置"
         id: generate-args
@@ -87,7 +84,6 @@ jobs:
           params: "${{ toJSON(matrix.repos.params) }}"
           THREAD: $(nproc --all)
         run: |
-          echo "PATH Variable: $PATH"
           ARCH=$(echo $params | jq -r ".ARCH")
           CROSS_COMPILE=$(echo $params | jq -r ".CROSS_COMPILE")
           CROSS_COMPILE_COMPAT=$(echo $params | jq -r ".CROSS_COMPILE_COMPAT")
@@ -152,25 +148,20 @@ jobs:
           echo -e "\nCONFIG_HAVE_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           echo -e "\nCONFIG_KPROBE_EVENTS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
 
-          cat ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
-
       - name: "初始化设备配置"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          echo "PATH Variable: $PATH"
           make ${{ env.args }} ${{ env.DEFCONFIG_NAME }}
 
-         
       - name: "🎶 编译内核-1nd"
         continue-on-error: true
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          echo "PATH Variable: $PATH"
-          make ${args}
+          make ${args} > /dev/null
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
@@ -178,7 +169,6 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          echo "PATH Variable: $PATH"
           ls ../out/
           ls -lh /usr/bin/dtc
           cp -rf /usr/bin/dtc  ../out/scripts/dtc/dtc
@@ -188,7 +178,6 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          echo "PATH Variable: $PATH"
           bash lk.sh
           echo "Build Success"
 
