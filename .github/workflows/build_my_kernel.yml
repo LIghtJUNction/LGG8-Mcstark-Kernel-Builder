@@ -3,8 +3,6 @@ name: "build Kernel"
 env:
   CONFIGURATION: "repos.json"
   OUT_DIR: "out"
-  LLVM_VERSION: "17.0.2"
-  LLVM_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ env.LLVM_VERSION }}/clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
 
 on:
   workflow_dispatch:
@@ -54,7 +52,7 @@ jobs:
       - name: "⭐ 安装依赖"
         run: |
           sudo apt-get update -qq > /dev/null
-          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-to[...]
+          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools wget curl > /dev/null
 
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         working-directory: ./${{ env.kernelDir }}
@@ -71,10 +69,10 @@ jobs:
             name=$(echo $toolchains | jq -r ".[$i].name")
             repo=$(echo $toolchains | jq -r ".[$i].repo")
             branch=$(echo $toolchains | jq -r ".[$i].branch")
-            wget ${{ env.LLVM_URL }} > /dev/null 2>&1
-            tar -xf clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
-            mv clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04 $name
-            rm clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
+            tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
+            mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
+            rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
           done
@@ -141,7 +139,7 @@ jobs:
             rm -rf "./KernelSU"
           fi
           if [ -d "./drivers/kernelsu" ]; then
-            rm- rf "./drivers/kernelsu"
+            rm -rf "./drivers/kernelsu"
           fi
 
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
@@ -163,7 +161,7 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          make ${args} | awk '!seen[$0]++' > /dev/null
+          make ${args} > /dev/null
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
@@ -180,7 +178,7 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          bash lk.sh | awk '!seen[$0]++'
+          bash lk.sh
           echo "Build Success"
 
       - name: "O(∩_∩)O-打包刷机包"
