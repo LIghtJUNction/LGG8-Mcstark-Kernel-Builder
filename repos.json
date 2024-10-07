@@ -1,8 +1,8 @@
 [  {
     "kernelSource": {
       "name": "G8-OvO",
-      "repo": "https://github.com/qwe28256/OvO_mcstark_alphalm_kernel",
-      "branch": "14",
+      "repo": "https://github.com/AlcatrazDev-Android-Devices/kernel_lge_sm8150",
+      "branch": "fourteen",
       "device": "dev"
     },
     "withKernelSU": true,
