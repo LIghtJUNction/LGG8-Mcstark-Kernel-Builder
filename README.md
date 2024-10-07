@@ -5,21 +5,10 @@
 -- clang17.0.2
 
 
-**Support**
 
----
 
-***System***: LineageOS21
 
----
-
-***Docker***
-
-***KernelSU***
-
-***LXC***
-
----
+# Thanks！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 
 ***Authors***：OvO (mcstarkdev)
 
