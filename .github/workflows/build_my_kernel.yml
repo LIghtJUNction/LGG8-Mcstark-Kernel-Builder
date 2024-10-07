@@ -55,11 +55,27 @@ jobs:
           sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools
           echo "Installed dependencies at $(date)"
 
+      - name: "Cache dependencies"
+        uses: actions/cache@v2
+        with:
+          path: /usr/bin/dtc
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         working-directory: ./${{ env.kernelDir }}
         run: |
           git clone --branch $kernelBranch $kernelRepo $kernelName --depth=1
           echo "Cloned kernel source at $(date)"
+
+      - name: "Cache kernel source"
+        uses: actions/cache@v2
+        with:
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
+          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-kernel-
 
       - name: "获取工具链"
         working-directory: ./${{ env.kernelDir }}
@@ -79,6 +95,14 @@ jobs:
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
             echo "Toolchain $name setup at $(date)"
           done
+
+      - name: "Cache toolchain"
+        uses: actions/cache@v2
+        with:
+          path: ./${{ env.kernelDir }}/toolchains
+          key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-toolchain-
 
       - name: "😎 一些设置"
         id: generate-args
