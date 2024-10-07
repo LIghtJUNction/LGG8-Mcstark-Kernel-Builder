@@ -3,6 +3,8 @@ name: "build Kernel"
 env:
   CONFIGURATION: "repos.json"
   OUT_DIR: "out"
+  LLVM_VERSION: "17.0.2"
+  LLVM_URL: "https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ env.LLVM_VERSION }}/clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz"
 
 on:
   workflow_dispatch:
@@ -69,10 +71,10 @@ jobs:
             name=$(echo $toolchains | jq -r ".[$i].name")
             repo=$(echo $toolchains | jq -r ".[$i].repo")
             branch=$(echo $toolchains | jq -r ".[$i].branch")
-            wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
-            tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
-            mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
-            rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            wget ${{ env.LLVM_URL }} > /dev/null 2>&1
+            tar -xf clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
+            mv clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04 $name
+            rm clang+llvm-${{ env.LLVM_VERSION }}-x86_64-linux-gnu-ubuntu-22.04.tar.xz
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
           done
@@ -161,7 +163,7 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          make ${args} > /dev/null
+          make ${args} | awk '!seen[$0]++' > /dev/null
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
@@ -178,7 +180,7 @@ jobs:
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
-          bash lk.sh
+          bash lk.sh | awk '!seen[$0]++'
           echo "Build Success"
 
       - name: "O(∩_∩)O-打包刷机包"
