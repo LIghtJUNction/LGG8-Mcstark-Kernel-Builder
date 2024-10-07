@@ -52,12 +52,14 @@ jobs:
       - name: "⭐ 安装依赖"
         run: |
           sudo apt-get update -qq > /dev/null
-          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools wget curl > /dev/null
+          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools
+          echo "Installed dependencies at $(date)"
 
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         working-directory: ./${{ env.kernelDir }}
         run: |
           git clone --branch $kernelBranch $kernelRepo $kernelName --depth=1
+          echo "Cloned kernel source at $(date)"
 
       - name: "获取工具链"
         working-directory: ./${{ env.kernelDir }}
@@ -75,6 +77,7 @@ jobs:
             rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
+            echo "Toolchain $name setup at $(date)"
           done
 
       - name: "😎 一些设置"
@@ -130,6 +133,7 @@ jobs:
             args="$args OBJCOPY=$OBJCOPY"
           fi
           echo "args=$args" >> $GITHUB_OUTPUT
+          echo "Generated args at $(date)"
 
       - name: "更新kernelsu"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -148,12 +152,15 @@ jobs:
           echo -e "\nCONFIG_HAVE_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           echo -e "\nCONFIG_KPROBE_EVENTS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
 
+          echo "Updated KernelSU at $(date)"
+
       - name: "初始化设备配置"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${{ env.args }} ${{ env.DEFCONFIG_NAME }}
+          echo "Initialized device configuration at $(date)"
 
       - name: "🎶 编译内核-1nd"
         continue-on-error: true
@@ -162,6 +169,7 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${args} > /dev/null
+          echo "Compiled kernel 1st pass at $(date)"
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
@@ -172,6 +180,7 @@ jobs:
           ls ../out/
           ls -lh /usr/bin/dtc
           cp -rf /usr/bin/dtc  ../out/scripts/dtc/dtc
+          echo "Compiled kernel 2nd pass at $(date)"
 
       - name: "🎶 编译内核-3nd"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -179,7 +188,7 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           bash lk.sh
-          echo "Build Success"
+          echo "Build Success at $(date)"
 
       - name: "O(∩_∩)O-打包刷机包"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -188,7 +197,7 @@ jobs:
          cp -rf ../out/arch/arm64/boot/Image.gz kernelpack
          zip -r ../out/kernelpack.zip ./kernelpack/*
          mv ./kernelpack ../out
-         echo "Done"
+         echo "Done at $(date)"
 
       - name: "💛 上传 kernelpack"
         uses: actions/upload-artifact@v3
