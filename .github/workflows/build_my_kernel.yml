@@ -42,7 +42,7 @@ jobs:
       kernelBranch: ${{ matrix.repos.kernelSource.branch }}
       kernelDevice: ${{ matrix.repos.kernelSource.device }}
 
-      DEFCONFIG_NAME: a13_ovo_defconfig
+      DEFCONFIG_NAME: alpha_lao_com-perf_defconfig
 
       withKernelSU: ${{ matrix.repos.withKernelSU }}
     steps:
