@@ -8,8 +8,8 @@
 
 
 
-# Thanks！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+# Thanks！！！！！！！
 
 ***Authors***：OvO (mcstarkdev)
-
+***Sub Author***: LIghtJUNction
 ---
