@@ -1,7 +1,7 @@
 
 <h1>LG G8 kernel
 
--- for pixel
+-- for pixel --android 14
 -- clang17.0.2
 
 
