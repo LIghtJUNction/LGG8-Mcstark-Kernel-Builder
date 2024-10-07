@@ -1,4 +1,4 @@
-name: "Android 13 Dev Kernel"
+name: "build Kernel"
 
 env:
   CONFIGURATION: "repos.json"
