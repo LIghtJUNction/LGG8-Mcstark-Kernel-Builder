@@ -3,7 +3,7 @@
     "kernelSource": {
       "name": "G8-lightjunction",
       "repo": "https://github.com/LIghtJUNction/kernel_lge_sm8150",
-      "branch": "lineage-21.0",
+      "branch": "fourteen",
       "device": "dev"
     },
     "withKernelSU": true,
