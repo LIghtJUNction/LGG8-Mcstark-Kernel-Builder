@@ -1,4 +1,5 @@
-[  {
+[
+  {
     "kernelSource": {
       "name": "G8-lightjunction",
       "repo": "https://github.com/LIghtJUNction/kernel_lge_sm8150",
@@ -10,12 +11,14 @@
       {
         "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
         "branch": "master",
-        "name": "gas"
+        "name": "gas",
+        "version": "latest"  // 确保使用最新版本
       },
       {
         "repo": "https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone/",
         "branch": "18",
-        "name": "clang"
+        "name": "clang",
+        "version": "llvmorg-17.0.2"  // 更新到最新的稳定版本
       }
     ],
     "params": {
@@ -25,10 +28,10 @@
       "CROSS_COMPILE_COMPAT": "arm-linux-gnueabi-",
       "CLANG_TRIPLE": "aarch64-linux-gnu-",
       "AR": "llvm-ar",
-      "NM" : "llvm-nm",
-      "OBJCOPY" : "llvm-objcopy", 
-      "OBJDUMP" : "llvm-objdump",
-      "STRIP" : "llvm-strip",
+      "NM": "llvm-nm",
+      "OBJCOPY": "llvm-objcopy",
+      "OBJDUMP": "llvm-objdump",
+      "STRIP": "llvm-strip",
       "CC": "clang"
     }
   }
