@@ -210,7 +210,7 @@ jobs:
           retention-days: 7
           
       - name: "💛 上传 Image"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Image
           path: ./${{ env.kernelDir }}/${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/boot/Image
@@ -218,7 +218,7 @@ jobs:
           retention-days: 7
 
       - name: "💙 上传 Image.gz"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Image.gz
           path: ./${{ env.kernelDir }}/${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/boot/Image.gz
