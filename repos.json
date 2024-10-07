@@ -1,7 +1,7 @@
 [  {
     "kernelSource": {
       "name": "G8-lightjuction",
-      "repo": "https://github.com/LIghtJUNction/kernel_lge_alphalm/tree/alphalm",
+      "repo": "https://github.com/LIghtJUNction/kernel_lge_alphalm/",
       "branch": "alphalm",
       "device": "dev"
     },
