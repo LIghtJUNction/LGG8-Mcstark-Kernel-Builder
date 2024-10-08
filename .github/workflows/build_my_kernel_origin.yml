@@ -58,6 +58,7 @@ jobs:
         working-directory: ./${{ env.kernelDir }}
         run: |
           git clone --branch $kernelBranch $kernelRepo $kernelName --depth=1
+          cat ./$kernelName/arch/arm64/boot/dts/lge/sm8150-alpha/sm8150-alpha_common/sm8150-alpha_common.dtsi
 
       - name: "获取工具链"
         working-directory: ./${{ env.kernelDir }}
