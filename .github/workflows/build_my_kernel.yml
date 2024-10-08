@@ -85,11 +85,11 @@ jobs:
         run: |
           git clone --branch $kernelBranch $kernelRepo $kernelName --depth=1
 
-      - name: "Cache kernel source"
-        uses: actions/cache@v4
-        with:
-          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
-          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+#      - name: "Cache kernel source"
+#        uses: actions/cache@v4
+#        with:
+#          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
+#          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
 
       - name: "Restore toolchain cache"
         id: restore-toolchain-cache
@@ -243,3 +243,4 @@ jobs:
         with:
           name: "${{ env.kernelDevice }}"
           path: "${{ env.OUT_DIR }}"
+          if-no-files-found: ignore
