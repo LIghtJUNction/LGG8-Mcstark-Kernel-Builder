@@ -56,7 +56,7 @@ jobs:
           echo "Installed dependencies at $(date)"
 
       - name: "Cache dependencies"
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /usr/bin/dtc
           key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
