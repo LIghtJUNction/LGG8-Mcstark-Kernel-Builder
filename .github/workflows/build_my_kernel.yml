@@ -70,14 +70,14 @@ jobs:
           path: /usr/bin/dtc
           key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
 
-      - name: "Restore kernel source cache"
-        id: restore-kernel-cache
-        uses: actions/cache@v4
-        with:
-          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
-          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-kernel-
+#      - name: "Restore kernel source cache"
+#        id: restore-kernel-cache
+#        uses: actions/cache@v4
+#        with:
+#          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
+#          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+#          restore-keys: |
+#            ${{ runner.os }}-kernel-
 
       - name: "克隆内核源码 => (${{ env.kernelRepo }})"
         if: steps.restore-kernel-cache.outputs.cache-hit != 'true'
