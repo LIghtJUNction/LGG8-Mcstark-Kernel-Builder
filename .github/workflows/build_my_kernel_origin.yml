@@ -168,7 +168,7 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           echo "PATH Variable: $PATH"
-          make ${args}
+          make -s ${args}
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
