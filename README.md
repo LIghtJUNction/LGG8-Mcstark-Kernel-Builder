@@ -4,7 +4,7 @@
 -- for pixel --android 14
 -- clang17.0.2
 
-https://github.com/LIghtJUNction/kernel_lge_sm8150
+https://github.com/LIghtJUNction/OvO_mcstark_alphalm_kernel
 
 
 
