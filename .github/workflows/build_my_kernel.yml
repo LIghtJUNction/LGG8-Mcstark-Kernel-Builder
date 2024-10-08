@@ -59,7 +59,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /usr/bin/dtc
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-deps-
 
@@ -73,7 +73,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}
-          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-kernel-
 
@@ -87,10 +87,12 @@ jobs:
             name=$(echo $toolchains | jq -r ".[$i].name")
             repo=$(echo $toolchains | jq -r ".[$i].repo")
             branch=$(echo $toolchains | jq -r ".[$i].branch")
-            wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
-            tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
-            mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
-            rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            if [ ! -d "$name" ]; then
+              wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
+              tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
+              mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
+              rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            fi
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
             echo "Toolchain $name setup at $(date)"
@@ -100,7 +102,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/toolchains
-          key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-toolchain-
 
