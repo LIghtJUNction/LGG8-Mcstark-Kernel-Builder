@@ -4,6 +4,7 @@
 -- for pixel --android 14
 -- clang17.0.2
 
+https://github.com/LIghtJUNction/kernel_lge_sm8150
 
 
 
