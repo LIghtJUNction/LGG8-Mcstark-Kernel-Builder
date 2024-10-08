@@ -2,8 +2,8 @@
   {
     "kernelSource": {
       "name": "G8-lightjunction",
-      "repo": "https://github.com/LIghtJUNction/kernel_lge_sm8150",
-      "branch": "fourteen",
+      "repo": "https://github.com/LIghtJUNction/OvO_mcstark_alphalm_kernel",
+      "branch": "14",
       "device": "dev"
     },
     "withKernelSU": true,
