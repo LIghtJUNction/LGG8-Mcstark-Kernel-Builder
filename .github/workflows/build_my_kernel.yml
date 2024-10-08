@@ -70,7 +70,7 @@ jobs:
           echo "Cloned kernel source at $(date)"
 
       - name: "Cache kernel source"
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}
           key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json') }}
@@ -97,7 +97,7 @@ jobs:
           done
 
       - name: "Cache toolchain"
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/toolchains
           key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json') }}
