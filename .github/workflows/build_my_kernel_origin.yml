@@ -1,4 +1,4 @@
-name: "build Kernel"
+name: "build Kernel_origin"
 
 env:
   CONFIGURATION: "repos.json"
