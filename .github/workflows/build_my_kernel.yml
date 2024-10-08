@@ -216,7 +216,24 @@ jobs:
       - name: "编译内核"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         run: |
-          make -j$(nproc --all) ${{ steps.generate-args.outputs.args }}
+          # 创建日志文件
+          LOG_FILE=../out/kernel_build.log
+
+          # 进行编译，忽略错误，但输出日志
+          set +e  # 禁止命令失败中断脚本
+          make -j$(nproc --all) ${{ steps.generate-args.outputs.args }} > $LOG_FILE 2>&1
+          set -e  # 恢复默认的错误处理
+
+          # 显示最后50行日志
+          tail -n 50 $LOG_FILE
+        continue-on-error: true
+
+      - name: "上传编译日志"
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel_build_log
+          path: ./${{ env.kernelDir }}/${{ env.OUT_DIR }}/kernel_build.log
+          if-no-files-found: ignore
 
       - name: "保存编译产物"
         uses: actions/upload-artifact@v4
