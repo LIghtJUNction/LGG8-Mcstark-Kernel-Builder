@@ -193,7 +193,7 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${args} > /dev/null
-          echo "Compiled kernel 1st pass at $(date)" | awk '!x[$0]++'
+          echo "Compiled kernel 1st pass " | awk '!x[$0]++'
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
