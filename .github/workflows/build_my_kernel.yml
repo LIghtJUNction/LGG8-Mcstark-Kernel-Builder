@@ -1,4 +1,29 @@
+name: "build Kernel"
+
+env:
+  CONFIGURATION: "repos.json"
+  OUT_DIR: "out"
+
+on:
+  workflow_dispatch:
+
 jobs:
+  Set-repos:
+    name: "读取 repos.json"
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.generate-matrix.outputs.repos }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Generate Matrix"
+        id: generate-matrix
+        run: |
+          echo "repos<<EOF" >> $GITHUB_OUTPUT
+          cat  ${{ env.CONFIGURATION }} >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   Build-Kernel:
     name: "编译内核"
     runs-on: ubuntu-latest
@@ -11,20 +36,22 @@ jobs:
         repos: ${{ fromJSON(needs.Set-repos.outputs.repos) }}
     env:
       kernelDir: ${{ matrix.repos.kernelSource.name }}_${{ matrix.repos.kernelSource.device }}
+
       kernelName: ${{ matrix.repos.kernelSource.name }}
       kernelRepo: ${{ matrix.repos.kernelSource.repo }}
       kernelBranch: ${{ matrix.repos.kernelSource.branch }}
       kernelDevice: ${{ matrix.repos.kernelSource.device }}
+
       DEFCONFIG_NAME: vendor/alpha_lao_com-perf_defconfig
+
       withKernelSU: ${{ matrix.repos.withKernelSU }}
-    
     steps:
       - name: "✨ 创建工作目录"
         run: mkdir -p $kernelDir
 
       - name: "Restore dependencies cache"
         id: restore-deps-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /usr/bin/dtc
           key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
@@ -35,7 +62,7 @@ jobs:
         if: steps.restore-deps-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update -qq > /dev/null
-          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools > /dev/null 2>&1
+          sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-tools
 
       - name: "Cache dependencies"
         uses: actions/cache@v4
@@ -66,7 +93,7 @@ jobs:
 
       - name: "Restore toolchain cache"
         id: restore-toolchain-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ./${{ env.kernelDir }}/toolchains
           key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
@@ -76,13 +103,23 @@ jobs:
       - name: "获取工具链"
         if: steps.restore-toolchain-cache.outputs.cache-hit != 'true'
         working-directory: ./${{ env.kernelDir }}
+        env:
+          toolchains: "${{ toJSON(matrix.repos.toolchains) }}"
         run: |
-          wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
-          tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
-          mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 toolchains
-          rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
-          echo "$(pwd)/toolchains/" >> $GITHUB_PATH
-          echo "$(pwd)/toolchains/bin" >> $GITHUB_PATH
+          toolchains_num="$(echo $toolchains | jq 'length')"
+          for ((i=0;i<toolchains_num;i++)); do
+            name=$(echo $toolchains | jq -r ".[$i].name")
+            repo=$(echo $toolchains | jq -r ".[$i].repo")
+            branch=$(echo $toolchains | jq -r ".[$i].branch")
+            if [ ! -d "$name" ]; then
+              wget https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.2/clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null 2>&1
+              tar -xf clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz > /dev/null
+              mv clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04 $name
+              rm clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+            fi
+            echo "$(pwd)/$name/" >> $GITHUB_PATH
+            echo "$(pwd)/$name/bin" >> $GITHUB_PATH
+          done
 
       - name: "Cache toolchain"
         uses: actions/cache@v4
@@ -94,3 +131,91 @@ jobs:
         run: |
           aarch64-linux-gnu-gcc --version
           aarch64-linux-gnu-objdump --version
+
+      - name: "😎 一些设置"
+        id: generate-args
+        working-directory: ./${{ env.kernelDir }}
+        env:
+          params: "${{ toJSON(matrix.repos.params) }}"
+          THREAD: $(nproc --all)
+        run: |
+          ARCH=$(echo $params | jq -r ".ARCH")
+          CROSS_COMPILE=$(echo $params | jq -r ".CROSS_COMPILE")
+          CROSS_COMPILE_COMPAT=$(echo $params | jq -r ".CROSS_COMPILE_COMPAT")
+          CROSS_COMPILE_ARM32=$(echo $params | jq -r ".CROSS_COMPILE_ARM32")
+          CLANG_TRIPLE=$(echo $params | jq -r ".CLANG_TRIPLE")
+          AR=$(echo $params | jq -r ".AR")
+          CC=$(echo $params | jq -r ".CC")
+
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+
+          args="-j16"
+          if [ -n "${{ env.OUT_DIR }}" ]; then
+            mkdir -p $(pwd)/${{ env.OUT_DIR }}
+            args="$args O=$(pwd)/${{ env.OUT_DIR }}"
+          fi
+          if [ -n "$ARCH" ]; then
+            args="$args ARCH=$ARCH"
+          fi
+          if [ -n "$CROSS_COMPILE" ]; then
+            args="$args CROSS_COMPILE=$CROSS_COMPILE"
+          fi
+          if [ -n "$CLANG_TRIPLE" ]; then
+            args="$args CLANG_TRIPLE=$CLANG_TRIPLE"
+          fi
+          if [ -n "$CROSS_COMPILE_COMPAT" ]; then
+            args="$args CROSS_COMPILE_ARM32=$CROSS_COMPILE_COMPAT"
+          fi
+          if [ -n "$AR" ]; then
+            args="$args AR=$AR"
+          fi
+          if [ -n "$CC" ]; then
+            args="$args CC=$CC"
+          fi
+          if [ -n "$NM" ]; then
+            args="$args NM=$NM"
+          fi
+          if [ -n "$STRIP" ]; then
+            args="$args STRIP=$STRIP"
+          fi
+          if [ -n "$OBJDUMP" ]; then
+            args="$args OBJDUMP=$OBJDUMP"
+          fi
+          if [ -n "$OBJCOPY" ]; then
+            args="$args OBJCOPY=$OBJCOPY"
+          fi
+          echo "args=$args" >> $GITHUB_OUTPUT
+
+      - name: "更新kernelsu"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        if: ${{ env.withKernelSU == 'true' }}
+        run: |
+          if [ -d "./KernelSU" ]; then
+            rm -rf "./KernelSU"
+          fi
+          if [ -d "./drivers/su" ]; then
+            rm -rf "./drivers/su"
+          fi
+          git clone --depth 1 https://github.com/tiann/KernelSU
+          mv KernelSU/su drivers/su
+
+      - name: "清理缓存"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        run: |
+          make mrproper
+
+      - name: "使用 defconfig 配置文件"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        run: |
+          make ${{ env.DEFCONFIG_NAME }} ${{ steps.generate-args.outputs.args }}
+
+      - name: "编译内核"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        run: |
+          make -j$(nproc --all) ${{ steps.generate-args.outputs.args }}
+
+      - name: "保存编译产物"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ env.kernelDevice }}"
+          path: "${{ env.OUT_DIR }}"
