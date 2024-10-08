@@ -49,7 +49,7 @@ jobs:
       - name: "✨ 创建工作目录"
         run: mkdir -p $kernelDir
 
-      - name: "Cache dependencies"
+      - name: "Restore dependencies cache"
         uses: actions/cache@v3
         with:
           path: /usr/bin/dtc
@@ -61,9 +61,14 @@ jobs:
         run: |
           sudo apt-get update -qq > /dev/null
           sudo apt-get install -y build-essential device-tree-compiler bc curl git zip ftp gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi libssl-dev lftp zstd wget libfl-dev python2 python3 libarchive-to[...]
-          echo "Installed dependencies at $(date)"
 
-      - name: "Cache kernel source"
+      - name: "Cache dependencies"
+        uses: actions/cache@v3
+        with:
+          path: /usr/bin/dtc
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+
+      - name: "Restore kernel source cache"
         uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -75,9 +80,14 @@ jobs:
         working-directory: ./${{ env.kernelDir }}
         run: |
           git clone --branch $kernelBranch $kernelRepo $kernelName --depth=1
-          echo "Cloned kernel source at $(date)"
 
-      - name: "Cache toolchain"
+      - name: "Cache kernel source"
+        uses: actions/cache@v3
+        with:
+          path: ./${{ env.kernelDir }}/${{ env.kernelName }}
+          key: ${{ runner.os }}-kernel-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
+
+      - name: "Restore toolchain cache"
         uses: actions/cache@v3
         with:
           path: ./${{ env.kernelDir }}/toolchains
@@ -103,8 +113,13 @@ jobs:
             fi
             echo "$(pwd)/$name/" >> $GITHUB_PATH
             echo "$(pwd)/$name/bin" >> $GITHUB_PATH
-            echo "Toolchain $name setup at $(date)"
           done
+
+      - name: "Cache toolchain"
+        uses: actions/cache@v3
+        with:
+          path: ./${{ env.kernelDir }}/toolchains
+          key: ${{ runner.os }}-toolchain-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
 
       - name: "Check toolchain version"
         run: |
@@ -164,7 +179,6 @@ jobs:
             args="$args OBJCOPY=$OBJCOPY"
           fi
           echo "args=$args" >> $GITHUB_OUTPUT
-          echo "Generated args at $(date)"
 
       - name: "更新kernelsu"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -183,15 +197,12 @@ jobs:
           echo -e "\nCONFIG_HAVE_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           echo -e "\nCONFIG_KPROBE_EVENTS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
 
-          echo "Updated KernelSU at $(date)"
-
       - name: "初始化设备配置"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${{ env.args }} ${{ env.DEFCONFIG_NAME }}
-          echo "Initialized device configuration at $(date)"
 
       - name: "🎶 编译内核-1nd"
         continue-on-error: true
@@ -200,7 +211,6 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           make ${args} > /dev/null
-          echo "Compiled kernel 1st pass " | awk '!x[$0]++'
 
       - name: "🎶 编译内核-2nd"
         continue-on-error: true
@@ -211,7 +221,6 @@ jobs:
           ls ../out/
           ls -lh /usr/bin/dtc
           cp -rf /usr/bin/dtc  ../out/scripts/dtc/dtc
-          echo "Compiled kernel 2nd pass at $(date)"
 
       - name: "🎶 编译内核-3nd"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -219,7 +228,6 @@ jobs:
           args: ${{ steps.generate-args.outputs.args }}
         run: |
           bash lk.sh
-          echo "Build Success at $(date)"
 
       - name: "O(∩_∩)O-打包刷机包"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -228,7 +236,6 @@ jobs:
          cp -rf ../out/arch/arm64/boot/Image.gz kernelpack
          zip -r ../out/kernelpack.zip ./kernelpack/*
          mv ./kernelpack ../out
-         echo "Done at $(date)"
 
       - name: "💛 上传 kernelpack"
         uses: actions/upload-artifact@v3
@@ -237,7 +244,7 @@ jobs:
           path: ./${{ env.kernelDir }}/${{ env.OUT_DIR }}/kernelpack
           if-no-files-found: ignore
           retention-days: 7
-          
+
       - name: "💛 上传 Image"
         uses: actions/upload-artifact@v4
         with:
