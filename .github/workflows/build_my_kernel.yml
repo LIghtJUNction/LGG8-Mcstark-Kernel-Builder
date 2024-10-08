@@ -193,11 +193,15 @@ jobs:
           if [ -d "./KernelSU" ]; then
             rm -rf "./KernelSU"
           fi
-          if [ -d "./drivers/su" ]; then
-            rm -rf "./drivers/su"
+          if [ -d "./drivers/kernelsu" ]; then
+            rm- rf "./drivers/kernelsu"
           fi
-          git clone --depth 1 https://github.com/tiann/KernelSU
-          mv KernelSU/su drivers/su
+
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+
+          echo -e "\nCONFIG_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_HAVE_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KPROBE_EVENTS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
 
       - name: "清理缓存"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
