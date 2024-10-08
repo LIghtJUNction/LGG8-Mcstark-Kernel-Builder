@@ -133,7 +133,7 @@ jobs:
           aarch64-linux-gnu-objdump --version
 
       - name: Use correct permissions
-        run: sudo chmod -R 777 /usr/bin/dtc
+        run: sudo chmod -R 755 /usr/bin/dtc
 
       - name: "😎 一些设置"
         id: generate-args
